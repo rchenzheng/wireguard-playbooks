@@ -1,0 +1,4 @@
+---
+interfaces:
+  - eth0
+  - wg0

@@ -1,0 +1,33 @@
+---
+- name: add repo
+  apt_repository:
+    repo: ppa:wireguard/wireguard
+
+- name: install wireguard and dependencies
+  apt:
+    name:
+      - wireguard
+      - iproute2
+      - fail2ban
+      - unattended-upgrades
+    update_cache: yes
+    state: latest
+
+- name: create a network namespace
+  command: ip netns add physical
+
+- name: move default interfaces to physical
+  command: ip link set {{ item }} netns physical
+  loop:
+    - "{{ interfaces }}"
+
+- name: create wireguard interface
+  command: ip link add wg0 type wireguard
+
+- name: assign interfaces to namespace
+  command: ip link set {{ item }} netns physical
+  loop:
+    - "{{ interfaces }}"
+
+- name: move wireguard interface to init namespace
+  command: ip -n physical link set wg0 netns 1
